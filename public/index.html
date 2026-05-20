@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Agente AI — 8 Fasi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0d0f14;
+    --surface: #141720;
+    --surface2: #1c2030;
+    --border: #2a2f3e;
+    --accent: #e8c468;
+    --accent2: #6ec8e8;
+    --text: #dde2f0;
+    --muted: #6b7394;
+    --user-bg: #1e2538;
+    --ai-bg: #141a28;
+    --danger: #e86868;
+    --success: #68e8a0;
+    --radius: 12px;
+  }
+
+  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'DM Mono', monospace; font-size: 14px; }
+
+  /* ── Layout ── */
+  .layout {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    grid-template-rows: 56px 1fr;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ── Header ── */
+  .header {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 0 24px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+  .header-logo {
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-size: 18px;
+    color: var(--accent);
+    letter-spacing: -0.5px;
+  }
+  .header-logo em { font-style: italic; }
+  .header-phase {
+    font-size: 11px;
+    color: var(--muted);
+    margin-left: auto;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--success);
+    box-shadow: 0 0 8px var(--success);
+    flex-shrink: 0;
+  }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .sidebar-section { display: flex; flex-direction: column; gap: 10px; }
+  .sidebar-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    font-weight: 500;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* Phase list */
+  .phase-list { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+  .phase-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    cursor: default;
+    transition: background 0.2s;
+    font-size: 12px;
+    line-height: 1.4;
+  }
+  .phase-item:hover { background: var(--surface2); }
+  .phase-num {
+    font-size: 10px;
+    color: var(--accent);
+    background: rgba(232,196,104,0.12);
+    border-radius: 4px;
+    padding: 1px 6px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .phase-name { color: var(--text); }
+  .phase-desc { color: var(--muted); font-size: 11px; margin-top: 2px; }
+
+  /* Config fields */
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+  textarea, input[type=range], select {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 12px;
+    padding: 8px 10px;
+    resize: vertical;
+    transition: border-color 0.2s;
+    outline: none;
+  }
+  textarea:focus, select:focus { border-color: var(--accent2); }
+  textarea { min-height: 100px; }
+  input[type=range] {
+    padding: 4px 0;
+    border: none;
+    background: none;
+    accent-color: var(--accent);
+  }
+  .range-row { display: flex; justify-content: space-between; align-items: center; }
+  .range-val { font-size: 12px; color: var(--accent); }
+
+  .btn {
+    padding: 9px 16px;
+    border-radius: 8px;
+    border: none;
+    font-family: inherit;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.18s;
+    font-weight: 500;
+  }
+  .btn-primary { background: var(--accent); color: #0d0f14; }
+  .btn-primary:hover { filter: brightness(1.1); }
+  .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+  .btn-ghost:hover { border-color: var(--accent2); color: var(--accent2); }
+  .btn-danger { background: transparent; border: 1px solid var(--danger); color: var(--danger); }
+  .btn-danger:hover { background: var(--danger); color: #0d0f14; }
+
+  /* Stats */
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .stat-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px;
+  }
+  .stat-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+  .stat-value { font-size: 18px; color: var(--accent); margin-top: 2px; font-family: 'Fraunces', serif; }
+
+  /* ── Chat ── */
+  .chat-area {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    scroll-behavior: smooth;
+  }
+  .messages::-webkit-scrollbar { width: 4px; }
+  .messages::-webkit-scrollbar-track { background: transparent; }
+  .messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* Empty state */
+  .empty-state {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    color: var(--muted);
+    text-align: center;
+    padding: 40px;
+  }
+  .empty-icon {
+    font-size: 48px;
+    opacity: 0.3;
+    filter: grayscale(1);
+  }
+  .empty-title { font-family: 'Fraunces', serif; font-size: 20px; color: var(--text); opacity: 0.5; }
+  .empty-sub { font-size: 12px; max-width: 280px; line-height: 1.6; }
+
+  /* Suggested questions */
+  .suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 8px;
+  }
+  .suggestion-chip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 12px;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.18s;
+    font-family: inherit;
+  }
+  .suggestion-chip:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Message bubbles */
+  .msg { display: flex; gap: 12px; animation: fadeSlide 0.3s ease; max-width: 860px; }
+  @keyframes fadeSlide { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: none; } }
+  .msg.user { flex-direction: row-reverse; align-self: flex-end; }
+  .msg.ai { align-self: flex-start; }
+
+  .msg-avatar {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+    margin-top: 4px;
+  }
+  .msg.user .msg-avatar { background: rgba(232,196,104,0.15); border: 1px solid rgba(232,196,104,0.3); }
+  .msg.ai  .msg-avatar { background: rgba(110,200,232,0.1);  border: 1px solid rgba(110,200,232,0.2); }
+
+  .msg-body { display: flex; flex-direction: column; gap: 4px; max-width: 680px; }
+  .msg-bubble {
+    padding: 12px 16px;
+    border-radius: 12px;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-size: 13.5px;
+  }
+  .msg.user .msg-bubble { background: var(--user-bg); border: 1px solid rgba(232,196,104,0.15); border-top-right-radius: 4px; }
+  .msg.ai   .msg-bubble { background: var(--ai-bg);   border: 1px solid rgba(110,200,232,0.12); border-top-left-radius: 4px; }
+
+  .msg-meta { font-size: 10px; color: var(--muted); display: flex; gap: 10px; padding: 0 4px; }
+  .msg.user .msg-meta { justify-content: flex-end; }
+
+  /* Typing indicator */
+  .typing-indicator {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    padding: 14px 16px;
+  }
+  .typing-dot {
+    width: 6px; height: 6px;
+    background: var(--accent2);
+    border-radius: 50%;
+    animation: bounce 1.2s infinite;
+    opacity: 0.6;
+  }
+  .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce { 0%,80%,100% { transform: translateY(0); } 40% { transform: translateY(-6px); } }
+
+  /* Input bar */
+  .input-bar {
+    padding: 16px 24px;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+  }
+  .input-wrap { flex: 1; position: relative; }
+  #userInput {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 13.5px;
+    padding: 11px 14px;
+    resize: none;
+    max-height: 140px;
+    min-height: 44px;
+    outline: none;
+    transition: border-color 0.2s;
+    line-height: 1.5;
+  }
+  #userInput:focus { border-color: var(--accent2); }
+  #userInput::placeholder { color: var(--muted); }
+
+  .send-btn {
+    width: 44px; height: 44px;
+    border-radius: 10px;
+    background: var(--accent);
+    border: none;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.18s;
+    flex-shrink: 0;
+  }
+  .send-btn:hover { filter: brightness(1.15); transform: scale(1.04); }
+  .send-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .send-btn svg { width: 18px; height: 18px; fill: #0d0f14; }
+
+  /* Toast */
+  .toast {
+    position: fixed; bottom: 24px; right: 24px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 18px;
+    font-size: 12px;
+    color: var(--text);
+    z-index: 999;
+    animation: slideUp 0.3s ease;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+  @keyframes slideUp { from { opacity:0; transform: translateY(12px); } }
+  .toast.error { border-color: var(--danger); color: var(--danger); }
+
+  /* Scrollbar for sidebar */
+  .sidebar::-webkit-scrollbar { width: 3px; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* Tab pills in sidebar config */
+  .config-save-row { display: flex; gap: 8px; }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="status-dot" id="statusDot"></div>
+    <div class="header-logo">Agente AI <em>Studio</em></div>
+    <span class="header-phase">8 Fasi • AIForLeaders.com</span>
+  </header>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+
+    <!-- Fase del corso -->
+    <div class="sidebar-section">
+      <div class="sidebar-label">Le 8 Fasi</div>
+      <ul class="phase-list">
+        <li class="phase-item"><span class="phase-num">1</span><div><div class="phase-name">Scopo e Perimetro</div><div class="phase-desc">Caso d'uso, utenti, KPI, vincoli</div></div></li>
+        <li class="phase-item"><span class="phase-num">2</span><div><div class="phase-name">Prompt di Sistema</div><div class="phase-desc">Obiettivi, ruolo, istruzioni, guardrail</div></div></li>
+        <li class="phase-item"><span class="phase-num">3</span><div><div class="phase-name">Scelta del Modello</div><div class="phase-desc">Modello, temperatura, contesto, costo</div></div></li>
+        <li class="phase-item"><span class="phase-num">4</span><div><div class="phase-name">Strumenti e API</div><div class="phase-desc">MCP, web API, funzioni custom</div></div></li>
+        <li class="phase-item"><span class="phase-num">5</span><div><div class="phase-name">Memoria</div><div class="phase-desc">Episodica, vettoriale, SQL, RAG</div></div></li>
+        <li class="phase-item"><span class="phase-num">6</span><div><div class="phase-name">Orchestrazione</div><div class="phase-desc">Flussi, trigger, agenti multipli, errori</div></div></li>
+        <li class="phase-item"><span class="phase-num">7</span><div><div class="phase-name">Interfaccia Utente</div><div class="phase-desc">Chat, web app, API, bot Slack/Discord</div></div></li>
+        <li class="phase-item"><span class="phase-num">8</span><div><div class="phase-name">Test e Valutazione</div><div class="phase-desc">Latenza, qualità, iterazione continua</div></div></li>
+      </ul>
+    </div>
+
+    <!-- Configurazione agente (FASE 2 + 3) -->
+    <div class="sidebar-section">
+      <div class="sidebar-label">Configura l'Agente (Fase 2–3)</div>
+
+      <div class="field">
+        <label>Prompt di Sistema</label>
+        <textarea id="sysPrompt" rows="5"></textarea>
+      </div>
+
+      <div class="field">
+        <div class="range-row">
+          <label>Temperatura</label>
+          <span class="range-val" id="tempVal">0.7</span>
+        </div>
+        <input type="range" id="tempRange" min="0" max="1" step="0.05" value="0.7" />
+      </div>
+
+      <div class="field">
+        <div class="range-row">
+          <label>Max Token risposta</label>
+          <span class="range-val" id="tokensVal">1000</span>
+        </div>
+        <input type="range" id="tokensRange" min="100" max="4000" step="100" value="1000" />
+      </div>
+
+      <div class="config-save-row">
+        <button class="btn btn-primary" onclick="saveConfig()" style="flex:1">Salva config</button>
+        <button class="btn btn-danger" onclick="resetSession()" title="Cancella memoria">🗑</button>
+      </div>
+    </div>
+
+    <!-- Statistiche (FASE 8) -->
+    <div class="sidebar-section">
+      <div class="sidebar-label">Metriche in Tempo Reale (Fase 8)</div>
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="stat-label">Messaggi</div>
+          <div class="stat-value" id="statMsgs">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Latenza media</div>
+          <div class="stat-value" id="statLatency">—</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Token input</div>
+          <div class="stat-value" id="statIn">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Token output</div>
+          <div class="stat-value" id="statOut">0</div>
+        </div>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- CHAT AREA (FASE 7) -->
+  <main class="chat-area">
+    <div class="messages" id="messages">
+      <div class="empty-state" id="emptyState">
+        <div class="empty-icon">🤖</div>
+        <div class="empty-title">Agente pronto</div>
+        <div class="empty-sub">Configura il prompt di sistema nella barra laterale, poi inizia a chattare.</div>
+        <div class="suggestions">
+          <button class="suggestion-chip" onclick="sendSuggestion('Spiegami cos\'è un agente AI in 3 frasi')">Cos'è un agente AI?</button>
+          <button class="suggestion-chip" onclick="sendSuggestion('Qual è la differenza tra temperatura 0 e temperatura 1 in un LLM?')">Temperatura LLM</button>
+          <button class="suggestion-chip" onclick="sendSuggestion('Cosa sono i database vettoriali e a cosa servono?')">Database vettoriali</button>
+          <button class="suggestion-chip" onclick="sendSuggestion('Spiegami il protocollo MCP di Anthropic')">Protocollo MCP</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="input-bar">
+      <div class="input-wrap">
+        <textarea id="userInput" rows="1" placeholder="Scrivi un messaggio… (Invio per inviare, Shift+Invio per andare a capo)"></textarea>
+      </div>
+      <button class="send-btn" id="sendBtn" onclick="sendMessage()" title="Invia">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>
+      </button>
+    </div>
+  </main>
+
+</div>
+
+<script>
+// ── State ─────────────────────────────────────────────────────────────────
+const SESSION_ID = "session_" + Date.now();
+let msgCount = 0;
+let totalLatency = 0;
+let totalIn = 0;
+let totalOut = 0;
+
+// ── Init ──────────────────────────────────────────────────────────────────
+async function init() {
+  const cfg = await fetch("/api/config").then(r => r.json());
+  document.getElementById("sysPrompt").value = cfg.systemPrompt;
+  document.getElementById("tempRange").value = cfg.temperature;
+  document.getElementById("tempVal").textContent = cfg.temperature;
+  document.getElementById("tokensRange").value = cfg.maxTokens;
+  document.getElementById("tokensVal").textContent = cfg.maxTokens;
+}
+
+// ── Config save ───────────────────────────────────────────────────────────
+async function saveConfig() {
+  const body = {
+    systemPrompt: document.getElementById("sysPrompt").value,
+    temperature: parseFloat(document.getElementById("tempRange").value),
+    maxTokens: parseInt(document.getElementById("tokensRange").value),
+  };
+  const r = await fetch("/api/config", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  if (r.ok) toast("✅ Configurazione salvata");
+  else toast("❌ Errore nel salvataggio", true);
+}
+
+// ── Reset sessione (cancella memoria) ─────────────────────────────────────
+async function resetSession() {
+  await fetch("/api/session/" + SESSION_ID, { method: "DELETE" });
+  document.getElementById("messages").innerHTML = "";
+  document.getElementById("emptyState") || showEmpty();
+  msgCount = totalLatency = totalIn = totalOut = 0;
+  updateStats(null);
+  toast("🗑 Memoria conversazione cancellata");
+}
+
+// ── Send message ──────────────────────────────────────────────────────────
+async function sendMessage() {
+  const input = document.getElementById("userInput");
+  const message = input.value.trim();
+  if (!message) return;
+
+  hideEmpty();
+  appendMsg("user", message);
+  input.value = "";
+  autoGrow(input);
+
+  const typingEl = appendTyping();
+  document.getElementById("sendBtn").disabled = true;
+
+  try {
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message, sessionId: SESSION_ID }),
+    });
+    const data = await res.json();
+    typingEl.remove();
+
+    if (!res.ok) throw new Error(data.error || "Errore server");
+
+    appendMsg("ai", data.reply, data.latency, data.tokens);
+
+    // Aggiorna metriche
+    msgCount++;
+    totalLatency += data.latency;
+    totalIn += data.tokens?.input || 0;
+    totalOut += data.tokens?.output || 0;
+    updateStats(data);
+
+  } catch (err) {
+    typingEl.remove();
+    appendMsg("ai", "⚠️ Errore: " + err.message);
+    toast("Errore: " + err.message, true);
+  }
+
+  document.getElementById("sendBtn").disabled = false;
+  scrollBottom();
+}
+
+function sendSuggestion(text) {
+  document.getElementById("userInput").value = text;
+  sendMessage();
+}
+
+// ── DOM helpers ───────────────────────────────────────────────────────────
+function appendMsg(role, text, latency, tokens) {
+  const wrap = document.getElementById("messages");
+  const el = document.createElement("div");
+  el.className = "msg " + role;
+
+  const avatar = role === "user" ? "👤" : "🤖";
+  const meta = latency ? `${latency}ms · ${(tokens?.input||0)+(tokens?.output||0)} tok` : "";
+
+  el.innerHTML = `
+    <div class="msg-avatar">${avatar}</div>
+    <div class="msg-body">
+      <div class="msg-bubble">${escapeHtml(text)}</div>
+      ${meta ? `<div class="msg-meta">${meta}</div>` : ""}
+    </div>`;
+  wrap.appendChild(el);
+  scrollBottom();
+  return el;
+}
+
+function appendTyping() {
+  const wrap = document.getElementById("messages");
+  const el = document.createElement("div");
+  el.className = "msg ai";
+  el.innerHTML = `
+    <div class="msg-avatar">🤖</div>
+    <div class="msg-body">
+      <div class="msg-bubble" style="background:var(--ai-bg);border:1px solid rgba(110,200,232,0.12)">
+        <div class="typing-indicator">
+          <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
+        </div>
+      </div>
+    </div>`;
+  wrap.appendChild(el);
+  scrollBottom();
+  return el;
+}
+
+function hideEmpty() {
+  const e = document.getElementById("emptyState");
+  if (e) e.remove();
+}
+
+function updateStats(data) {
+  document.getElementById("statMsgs").textContent = msgCount;
+  document.getElementById("statLatency").textContent = msgCount > 0 ? Math.round(totalLatency / msgCount) + "ms" : "—";
+  document.getElementById("statIn").textContent = totalIn;
+  document.getElementById("statOut").textContent = totalOut;
+}
+
+function scrollBottom() {
+  const m = document.getElementById("messages");
+  m.scrollTop = m.scrollHeight;
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+function toast(msg, isError = false) {
+  const el = document.createElement("div");
+  el.className = "toast" + (isError ? " error" : "");
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 3000);
+}
+
+// ── Textarea auto-grow ────────────────────────────────────────────────────
+function autoGrow(el) {
+  el.style.height = "auto";
+  el.style.height = Math.min(el.scrollHeight, 140) + "px";
+}
+
+document.getElementById("userInput").addEventListener("input", function() { autoGrow(this); });
+document.getElementById("userInput").addEventListener("keydown", function(e) {
+  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+});
+
+// Range slider live updates
+document.getElementById("tempRange").addEventListener("input", function() {
+  document.getElementById("tempVal").textContent = parseFloat(this.value).toFixed(2);
+});
+document.getElementById("tokensRange").addEventListener("input", function() {
+  document.getElementById("tokensVal").textContent = this.value;
+});
+
+init();
+</script>
+</body>
+</html>
