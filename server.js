@@ -13,8 +13,8 @@ const app = express();
 
 // ── Middleware ───────────────────────────────────────────────────────────────
 app.use(helmet({ contentSecurityPolicy: false })); // sicurezza headers HTTP
-app.use(cors());                                    // abilita CORS per API esterne
-app.use(morgan("dev"));                             // logging richieste in console
+app.use(cors()); // abilita CORS per API esterne
+app.use(morgan("dev")); // logging richieste in console
 app.use(express.json());
 app.use(express.static(join(__dirname, "public")));
 
@@ -45,8 +45,9 @@ app.get("/api/config", (req, res) => {
 app.post("/api/config", (req, res) => {
   const { systemPrompt, temperature, maxTokens } = req.body;
   if (systemPrompt !== undefined) agentConfig.systemPrompt = systemPrompt;
-  if (temperature  !== undefined) agentConfig.temperature  = parseFloat(temperature);
-  if (maxTokens    !== undefined) agentConfig.maxTokens    = parseInt(maxTokens);
+  if (temperature !== undefined)
+    agentConfig.temperature = parseFloat(temperature);
+  if (maxTokens !== undefined) agentConfig.maxTokens = parseInt(maxTokens);
   res.json({ ok: true, config: agentConfig });
 });
 
@@ -67,7 +68,8 @@ app.post("/api/chat", async (req, res) => {
 
   try {
     const apiKey = process.env.ANTHROPIC_API_KEY;
-    if (!apiKey) throw new Error("ANTHROPIC_API_KEY non impostata nel file .env");
+    if (!apiKey)
+      throw new Error("ANTHROPIC_API_KEY non impostata nel file .env");
 
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -93,7 +95,10 @@ app.post("/api/chat", async (req, res) => {
     const latency = Date.now() - startTime;
     const assistantMessage = data.content[0].text;
 
-    conversationHistory[sessionId].push({ role: "assistant", content: assistantMessage });
+    conversationHistory[sessionId].push({
+      role: "assistant",
+      content: assistantMessage,
+    });
 
     res.json({
       reply: assistantMessage,
@@ -126,5 +131,7 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`✅  Agente AI attivo → http://localhost:${PORT}`);
   console.log(`📋  Middleware: cors · helmet · morgan · dotenv`);
-  console.log(`🔑  API Key: ${process.env.ANTHROPIC_API_KEY ? "✓ trovata" : "✗ MANCANTE — aggiungi al .env"}`);
+  console.log(
+    `🔑  API Key: ${process.env.ANTHROPIC_API_KEY ? "✓ trovata" : "✗ MANCANTE — aggiungi al .env"}`,
+  );
 });

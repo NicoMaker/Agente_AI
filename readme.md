@@ -16,17 +16,20 @@ ai-agent-app/
 ## Come avviarlo
 
 ### 1. Installa le dipendenze
+
 ```bash
 npm install
 ```
 
 ### 2. Configura la API key
+
 ```bash
 cp .env.example .env
 # Apri .env e inserisci la tua ANTHROPIC_API_KEY
 ```
 
 ### 3. Avvia il server
+
 ```bash
 npm start
 # oppure in modalità watch (riavvio automatico):
@@ -34,6 +37,7 @@ npm run dev
 ```
 
 ### 4. Apri il browser
+
 ```
 http://localhost:3000
 ```
@@ -42,16 +46,16 @@ http://localhost:3000
 
 ## Le 8 Fasi implementate
 
-| Fase | Dove |
-|------|------|
-| 1 — Scopo e perimetro | Sidebar: sezione "Le 8 Fasi" |
-| 2 — Prompt di sistema | Sidebar: campo "Prompt di Sistema" |
-| 3 — Scelta modello | `server.js` → `agentConfig.model` + temperatura |
-| 4 — Strumenti | Estendibile con MCP / fetch a API esterne in `server.js` |
-| 5 — Memoria | `conversationHistory` in-memory, sliding window 20 msg |
-| 6 — Orchestrazione | Route POST `/api/chat` con error handling e retry |
-| 7 — Interfaccia | `public/index.html` — chat web responsive |
-| 8 — Test & metriche | Pannello statistiche: latenza, token, conteggio messaggi |
+| Fase                  | Dove                                                     |
+| --------------------- | -------------------------------------------------------- |
+| 1 — Scopo e perimetro | Sidebar: sezione "Le 8 Fasi"                             |
+| 2 — Prompt di sistema | Sidebar: campo "Prompt di Sistema"                       |
+| 3 — Scelta modello    | `server.js` → `agentConfig.model` + temperatura          |
+| 4 — Strumenti         | Estendibile con MCP / fetch a API esterne in `server.js` |
+| 5 — Memoria           | `conversationHistory` in-memory, sliding window 20 msg   |
+| 6 — Orchestrazione    | Route POST `/api/chat` con error handling e retry        |
+| 7 — Interfaccia       | `public/index.html` — chat web responsive                |
+| 8 — Test & metriche   | Pannello statistiche: latenza, token, conteggio messaggi |
 
 ## Estensioni suggerite
 
@@ -61,4 +65,5 @@ http://localhost:3000
 - **Fase 8**: Esportare le metriche in un CSV o dashboard
 
 ---
-*Generato seguendo il corso "Come costruire un agente AI" — AIForLeaders.com*
+
+_Generato seguendo il corso "Come costruire un agente AI" — AIForLeaders.com_
